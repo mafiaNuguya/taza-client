@@ -1,5 +1,11 @@
-import { useState } from "react";
-import { RegisterOptions, useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+
+import { inputOptions } from "../libs/utils";
+import useUser from "../libs/hooks/useUser";
+import useMutation from "../libs/hooks/useMutation";
+import cookieClient from "../libs/cookie";
 
 import Input from "../components/Input";
 import SubmitButton from "../components/buttons/Submit";
@@ -9,29 +15,47 @@ interface FormType {
   name: string;
 }
 
+interface MutattionResult {
+  ok: boolean;
+  token?: string;
+}
+
 const Home: React.FC = () => {
+  const [user, { mutate }] = useUser();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
     setError,
   } = useForm<FormType>();
-  const [submitLoading, setSubmitLoading] = useState(false);
+  const [enter, { loading, data }] = useMutation<MutattionResult>(
+    `${process.env.REACT_APP_API_URL}/enter`
+  );
 
-  const inputOptions: RegisterOptions = {
-    required: {
-      value: true,
-      message: "필수 입력 값입니다.",
-    },
-    maxLength: {
-      value: 8,
-      message: "이름은 8글자 이하",
-    },
-    pattern: {
-      value: /^[a-zA-Zㄱ-힣0-9]*$/,
-      message: "특수문자는 사용할 수 없습니다.",
-    },
+  const inputOnValid = (data: FormType) => {
+    if (loading) return;
+    enter(data);
   };
+
+  useEffect(() => {
+    if (data && !data.ok) {
+      setError("name", {
+        message: "중복되는 이름 입니다. 다른 이름을 선택해 주세요",
+      });
+      return;
+    }
+
+    if (data && data.ok) {
+      cookieClient.set(process.env.REACT_APP_TOKEN_NAME, data.token);
+      mutate();
+      return;
+    }
+  }, [data, setError, mutate]);
+
+  useEffect(() => {
+    if (user) navigate("/waiting", { replace: true });
+  }, [user]);
 
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto space-y-8">
@@ -40,7 +64,7 @@ const Home: React.FC = () => {
         <div className="text-white font-serif text-lg">마피아누구야</div>
       </div>
       <form
-        onSubmit={handleSubmit(() => {})}
+        onSubmit={handleSubmit(inputOnValid)}
         className="flex flex-col items-center w-2/3 space-y-5"
       >
         <Input
@@ -53,8 +77,8 @@ const Home: React.FC = () => {
         <SubmitButton
           className="w-28 h-10"
           text="입장하기"
-          loading={submitLoading}
-          disabled={errors.name || submitLoading ? true : false}
+          loading={loading}
+          disabled={errors.name || loading ? true : false}
         />
       </form>
     </div>
