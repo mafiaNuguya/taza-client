@@ -1,13 +1,21 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@layer components {
+  .D-input {
+    @apply w-full px-4 py-2 rounded-lg border focus:outline-none focus:bg-white;
+  }
+  .D-input-default {
+    @apply D-input bg-primary-gray placeholder:text-gray-500 border-gray-300 text-zinc-800 focus:ring-gray-200 focus:ring-2 focus:ring-opacity-30;
+  }
+  .D-input-error {
+    @apply D-input border-red-500 text-red-500 ring-red-500 ring-2 ring-opacity-30;
+  }
+  .D-btn {
+    @apply flex justify-center items-center bg-zinc-900 text-white text-sm font-bold py-2 px-6 rounded border border-zinc-900;
+  }
+  .D-btn-disabled {
+    @apply D-btn text-zinc-800 cursor-default;
+  }
 }
