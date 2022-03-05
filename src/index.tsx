@@ -13,19 +13,19 @@ import Home from "./pages/Home";
 import Waiting from "./pages/Waiting";
 
 ReactDOM.render(
-  <ModalProvider>
-    <AlertProvider template={Alert} {...alertOption}>
-      <WebSocketSessionProvider>
-        <BrowserRouter>
+  <BrowserRouter>
+    <ModalProvider>
+      <AlertProvider template={Alert} {...alertOption}>
+        <WebSocketSessionProvider>
           <Routes>
             <Route path="/" element={<App />}>
               <Route index element={<Home />} />
               <Route path="/waiting" element={<Waiting />} />
             </Route>
           </Routes>
-        </BrowserRouter>
-      </WebSocketSessionProvider>
-    </AlertProvider>
-  </ModalProvider>,
+        </WebSocketSessionProvider>
+      </AlertProvider>
+    </ModalProvider>
+  </BrowserRouter>,
   document.getElementById("root")
 );

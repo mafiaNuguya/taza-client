@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useAlert } from "react-alert";
 import { useNavigate } from "react-router-dom";
 import useSWR, { Fetcher, KeyedMutator } from "swr";
+import cookieClient from "../cookie";
 
 type User = {
   id: string;
@@ -16,7 +17,7 @@ type UseUserReturnType = [
 const fetcher: Fetcher<{ user?: User }> = async (url: string) => {
   const res = await fetch(url, { credentials: "include" });
   if (!res.ok) {
-    throw new Error("유효한 토큰이 아닙니다.");
+    throw new Error("유효한 토큰이 아닙니다. 다시 로그인 해 주세요");
   }
   return res.json();
 };
@@ -31,6 +32,7 @@ const useUser = (): UseUserReturnType => {
 
   useEffect(() => {
     if (!data && error) {
+      cookieClient.remove(process.env.REACT_APP_TOKEN_NAME);
       alert.show(error.message, { type: "error" });
       return;
     }

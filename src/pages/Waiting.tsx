@@ -4,19 +4,39 @@ import { useSession } from "../libs/webSocketSession/Provider";
 
 import Room from "../components/Room";
 import Button from "../components/buttons/Default";
+import useQuit from "../libs/hooks/useQuit";
 
 const Waiting: React.FC = () => {
-  const { session, connect } = useSession();
+  const { session, connect, disconnect } = useSession();
+  const { quitEventEnable, quitEventDisable } = useQuit();
 
   useEffect(() => {
     connect();
   }, []);
 
+  useEffect(() => {
+    if (session) {
+      window.history.pushState("", "", "?moved");
+
+      if (window.location.search === "?moved") {
+        quitEventEnable();
+      }
+
+      return () => quitEventDisable();
+    }
+
+    return () => {
+      if (window.location.search === "?moved") {
+        disconnect();
+      }
+    };
+  }, [session]);
+
   return (
     <div className="flex flex-col w-full h-full">
       <div className="flex items-center justify-between w-full h-20 px-5">
         <div className="flex flex-col text-sm h-11 text-primary-gray">
-          <div>대기자 수</div>
+          <div>대기자 수 {session?.waitingChannel?.totalUser}</div>
           <div>입장 가능한 게임 12</div>
         </div>
         <div className="flex flex-row">
