@@ -10,7 +10,11 @@ type EnterAction = {
 //   channel: string;
 // };
 
-export type SendAction = EnterAction;
+type CreateGameAction = {
+  type: "createGame";
+};
+
+export type SendAction = EnterAction | CreateGameAction;
 
 const actionCreator = {
   enter: (channel: string): EnterAction => ({ type: "enter", channel }),

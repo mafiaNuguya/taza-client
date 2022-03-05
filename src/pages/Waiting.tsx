@@ -1,14 +1,23 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import { useSession } from "../libs/webSocketSession/Provider";
+import { useModal } from "../components/Modal/Provider";
+import useQuit from "../libs/hooks/useQuit";
 
 import Room from "../components/Room";
 import Button from "../components/buttons/Default";
-import useQuit from "../libs/hooks/useQuit";
+import CreateGame from "../components/game/CreateGame/index";
 
 const Waiting: React.FC = () => {
   const { session, connect, disconnect } = useSession();
   const { quitEventEnable, quitEventDisable } = useQuit();
+  const modal = useModal();
+
+  const setGameOption = useCallback(() => {
+    if (session) {
+      modal.open(<CreateGame session={session} />);
+    }
+  }, [session]);
 
   useEffect(() => {
     connect();
@@ -37,7 +46,7 @@ const Waiting: React.FC = () => {
       <div className="flex items-center justify-between w-full h-20 px-5">
         <div className="flex flex-col text-sm h-11 text-primary-gray">
           <div>대기자 수 {session?.waitingChannel?.totalUser}</div>
-          <div>입장 가능한 게임 12</div>
+          <div>대기 중인 게임 12</div>
         </div>
         <div className="flex flex-row">
           <Button
@@ -45,7 +54,7 @@ const Waiting: React.FC = () => {
             text={"코드로 참여하기"}
             onClick={() => {}}
           />
-          <Button text={"방만들기"} onClick={() => {}} />
+          <Button text={"방만들기"} onClick={setGameOption} />
         </div>
       </div>
       <div className="flex-1 overflow-scroll box-border">

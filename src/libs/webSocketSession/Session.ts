@@ -43,6 +43,8 @@ class Session {
     if (this.socket) this.socket = null;
   }
 
+  createGame() {}
+
   handleMessage(action: ReceiveAction) {
     switch (action.type) {
       case "connected": {
