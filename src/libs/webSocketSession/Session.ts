@@ -1,3 +1,4 @@
+import { CreateGameData } from "../../components/game/CreateGame";
 import { ReceiveAction } from "./actions/receive";
 import actionCreator, { SendAction } from "./actions/send";
 
@@ -43,7 +44,7 @@ class Session {
     if (this.socket) this.socket = null;
   }
 
-  createGame() {}
+  createGame(data: CreateGameData) {}
 
   handleMessage(action: ReceiveAction) {
     switch (action.type) {
