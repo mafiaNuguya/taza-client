@@ -1,4 +1,6 @@
-import { CreateGameData } from "../../components/game/CreateGame";
+import type { CreateGameData } from "../../components/game/CreateGame";
+import type { NavigateFunction } from "react-router-dom";
+
 import { ReceiveAction } from "./actions/receive";
 import actionCreator, { SendAction } from "./actions/send";
 
@@ -18,18 +20,11 @@ class Session {
 
   constructor(
     private socket: WebSocket | null,
-    private update: (data: any) => void
+    public navigator: NavigateFunction
   ) {}
 
   private emit(action: SendAction) {
     this.socket?.send(JSON.stringify(action));
-  }
-
-  private updater(channelType: ChannelType, data: any) {
-    this.update({
-      ...(channelType === "game" && { gameChannel: data }),
-      ...(channelType === "waiting" && { waitingChannel: data }),
-    });
   }
 
   getSocket() {
@@ -44,7 +39,12 @@ class Session {
     if (this.socket) this.socket = null;
   }
 
-  createGame(data: CreateGameData) {}
+  createGame(data: CreateGameData) {
+    console.log(`게임을 생성합니다.${data}`);
+    const action = actionCreator.createGame(data);
+
+    this.emit(action);
+  }
 
   handleMessage(action: ReceiveAction) {
     switch (action.type) {
@@ -55,10 +55,12 @@ class Session {
       }
       case "enteredWaitingRoom": {
         console.log("waiting room 입장에 성공했습니다!!");
-        this.handleWaitingRoom(action.totalUser);
         break;
       }
-
+      case "createdGameRoom": {
+        this.navigator(`/game/${action.gameId}`, { replace: true });
+        break;
+      }
       default:
         break;
     }
@@ -68,10 +70,6 @@ class Session {
     console.log(`${channel}: 에 입장하고 싶다고 요청합니다`);
     const action = actionCreator.enter(channel);
     this.emit(action);
-  }
-
-  handleWaitingRoom(totalUser: number, gameRoomList?: any) {
-    this.updater("waiting", { totalUser });
   }
 }
 

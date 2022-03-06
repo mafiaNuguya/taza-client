@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 
-import type Session from "../../../libs/webSocketSession/Session";
 import type { GameType } from "./GameTypeSelect";
 import type { RoleCounts } from "./RoleCounter";
 
@@ -19,11 +18,9 @@ export type CreateGameData = {
   roleCounts: RoleCounts;
 };
 
-interface CreateGameProps {
-  session: Session;
-}
+interface CreateGameProps {}
 
-const CreateGame: React.FC<CreateGameProps> = ({ session }) => {
+const CreateGame: React.FC<CreateGameProps> = ({}) => {
   const [roomName, setRoomName] = useState<string>("마피아 할사람~!!");
   const [isPrivate, setPrivate] = useState<boolean>(false);
   const [gameType, setGameType] = useState<GameType>("4set");
@@ -34,14 +31,7 @@ const CreateGame: React.FC<CreateGameProps> = ({ session }) => {
     civil: 1,
   });
 
-  const handleCreateGame = () => {
-    session.createGame({
-      roomName,
-      isPrivate,
-      gameType,
-      roleCounts,
-    });
-  };
+  const handleCreateGame = () => {};
 
   return (
     <div className="relative w-3/4 max-w-xl border border-white bg-zinc-800 rounded-md p-4 space-y-3">

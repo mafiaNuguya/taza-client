@@ -2,9 +2,17 @@ type ConnectedAction = {
   type: "connected";
 };
 
-type EnteredWaitingRoom = {
+type EnteredWaitingRoomAction = {
   type: "enteredWaitingRoom";
   totalUser: number;
 };
 
-export type ReceiveAction = ConnectedAction | EnteredWaitingRoom;
+type CreatedGameRoomAction = {
+  type: "createdGameRoom";
+  gameId: string;
+};
+
+export type ReceiveAction =
+  | ConnectedAction
+  | EnteredWaitingRoomAction
+  | CreatedGameRoomAction;

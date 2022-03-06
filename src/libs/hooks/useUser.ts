@@ -2,9 +2,10 @@ import { useEffect } from "react";
 import { useAlert } from "react-alert";
 import { useNavigate } from "react-router-dom";
 import useSWR, { Fetcher, KeyedMutator } from "swr";
+
 import cookieClient from "../cookie";
 
-type User = {
+export type User = {
   id: string;
   name: string;
 };

@@ -3,6 +3,7 @@ import { useModal } from "../../components/Modal/Provider";
 
 import Session from "./Session";
 import Disconnected from "../../components/errors/Disconnected";
+import { useNavigate } from "react-router-dom";
 
 interface WebSocketSession {
   session: Session | null;
@@ -20,17 +21,12 @@ const useProvideWebSocketSession = () => {
   const [session, setSession] = useState<Session | null>(null);
   const ws = useRef<WebSocket | null>(null);
   const modal = useModal();
-
-  const updateSession = (data: any) =>
-    setSession({
-      ...session,
-      ...data,
-    });
+  const navigator = useNavigate();
 
   const connect = () => {
     if (!ws.current && !session) {
       ws.current = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
-      const session = new Session(ws.current, updateSession);
+      const session = new Session(ws.current, navigator);
       setSession(session);
 
       ws.current.addEventListener("open", () => {});

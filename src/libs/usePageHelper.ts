@@ -5,7 +5,7 @@ export const handleLeaveEvent = (e: BeforeUnloadEvent) => {
   e.returnValue = "";
 };
 
-const useQuit = () => {
+const useLeavePage = () => {
   const navigate = useNavigate();
 
   const handleBackEvent = () => {
@@ -47,4 +47,4 @@ const useQuit = () => {
   };
 };
 
-export default useQuit;
+export default useLeavePage;

@@ -3,13 +3,13 @@ import type { GameType } from "./GameTypeSelect";
 import ArrowLeft from "../../svgs/ArrowLeft";
 import ArrowRight from "../../svgs/ArrowRight";
 
-type Role = "mafia" | "police" | "doctor" | "civil";
+export type Role = "mafia" | "police" | "doctor" | "civil";
 
 export type RoleCounts = {
   [key in Role]: number;
 };
 
-const RoleName = {
+export const roleNames = {
   mafia: "마피아",
   police: "경찰",
   doctor: "의사",
@@ -38,7 +38,7 @@ const RoleCounter: React.FC<RoleCounterProps> = ({
     <div className="w-full flex flex-row flex-wrap justify-between">
       {Object.keys(roleCounts).map((role) => (
         <div className="flex flex-col justify-center items-center">
-          <div className="text-white mb-2">{RoleName[role as Role]}</div>
+          <div className="text-white mb-2">{roleNames[role as Role]}</div>
           <div className="flex flex-row items-center p-1 mb-4">
             <ArrowLeft
               stroke="white"

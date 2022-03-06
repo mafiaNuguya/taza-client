@@ -1,4 +1,4 @@
-import { handleLeaveEvent } from "../../libs/hooks/useQuit";
+import { handleLeaveEvent } from "../../libs/usePageHelper";
 
 import DefaultButton from "../buttons/Default";
 

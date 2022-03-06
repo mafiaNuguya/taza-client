@@ -1,4 +1,4 @@
-import Session from "../Session";
+import type { CreateGameData } from "../../../components/game/CreateGame";
 
 type EnterAction = {
   type: "enter";
@@ -12,6 +12,7 @@ type EnterAction = {
 
 type CreateGameAction = {
   type: "createGame";
+  gameData: CreateGameData;
 };
 
 export type SendAction = EnterAction | CreateGameAction;
@@ -19,6 +20,10 @@ export type SendAction = EnterAction | CreateGameAction;
 const actionCreator = {
   enter: (channel: string): EnterAction => ({ type: "enter", channel }),
   // leave: (channel: string): LeaveAction => ({ type: "leave", channel }),
+  createGame: (gameData: CreateGameData): CreateGameAction => ({
+    type: "createGame",
+    gameData,
+  }),
 };
 
 export default actionCreator;
