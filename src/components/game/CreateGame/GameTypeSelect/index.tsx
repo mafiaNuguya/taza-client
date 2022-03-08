@@ -1,8 +1,4 @@
-import type { RoleCounts } from "../RoleCounter";
-
 import SelectButton from "./SelectButton";
-
-export type GameType = "4set" | "6set" | "custom";
 
 const typeObjArray = [
   {
@@ -21,14 +17,14 @@ const typeObjArray = [
 
 interface GameTypeSelectProps {
   selected: GameType;
-  roleCounts: RoleCounts;
+  roleInfo: RoleInfo;
   gameTypeUpdater: React.Dispatch<GameType>;
   roleCountUpdater: React.Dispatch<any>;
 }
 
 const GameTypeSelect: React.FC<GameTypeSelectProps> = ({
   selected,
-  roleCounts,
+  roleInfo,
   gameTypeUpdater,
   roleCountUpdater,
 }) => {
@@ -49,12 +45,13 @@ const GameTypeSelect: React.FC<GameTypeSelectProps> = ({
       <div className="flex flex-row flex-wrap">
         {typeObjArray.map((obj) => (
           <SelectButton
+            key={obj.name}
             value={obj.type as GameType}
             selected={selected}
             onChange={handleChange}
             userCount={
               obj.type === "custom"
-                ? Object.values(roleCounts).reduce((acc, curr) => acc + curr)
+                ? Object.values(roleInfo).reduce((acc, curr) => acc + curr)
                 : undefined
             }
           />

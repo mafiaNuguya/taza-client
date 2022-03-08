@@ -7,3 +7,35 @@ declare namespace NodeJS {
     REACT_APP_WEBSOCKET_URL: string;
   }
 }
+
+type User = {
+  id: string;
+  name: string;
+  ingame?: string;
+};
+
+type GameType = "4set" | "6set" | "custom";
+
+type RoleInfo = {
+  [key in Role]: number;
+};
+
+type CreateGameData = {
+  roomName: string;
+  isPrivate: boolean;
+  gameType: GameType;
+  roleInfo: RoleInfo;
+  userCount: number;
+};
+
+type GameInfo = {
+  onGame: boolean;
+  gameId: string;
+  roomName: string;
+  isPrivate: boolean;
+  userCount: number;
+  gameType: GameType;
+  roleInfo: RoleInfo;
+  masterId: string;
+  sessions: User[];
+};

@@ -1,5 +1,3 @@
-import type { GameType } from "./index";
-
 interface SelectButtonProps {
   value: GameType;
   selected: GameType;

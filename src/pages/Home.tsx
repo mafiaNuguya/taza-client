@@ -15,7 +15,7 @@ interface FormType {
   name: string;
 }
 
-interface MutattionResult {
+interface MutationResult {
   ok: boolean;
   token?: string;
 }
@@ -29,7 +29,7 @@ const Home: React.FC = () => {
     formState: { errors },
     setError,
   } = useForm<FormType>();
-  const [enter, { loading, data }] = useMutation<MutattionResult>(
+  const [enter, { loading, data }] = useMutation<MutationResult>(
     `${process.env.REACT_APP_API_URL}/enter`
   );
 
@@ -47,7 +47,9 @@ const Home: React.FC = () => {
     }
 
     if (data && data.ok) {
-      cookieClient.set(process.env.REACT_APP_TOKEN_NAME, data.token);
+      cookieClient.set(process.env.REACT_APP_TOKEN_NAME, data.token, {
+        path: "/",
+      });
       mutate();
       return;
     }

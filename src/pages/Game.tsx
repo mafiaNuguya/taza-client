@@ -1,26 +1,35 @@
-import { useCallback, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import CreateGame from "../components/game/CreateGame";
-import { useModal } from "../components/Modal/Provider";
+import React, { useEffect } from "react";
 
-import { useSession } from "../libs/webSocketSession/Provider";
+import useGame from "../libs/hooks/useGame";
+import useLeavePage from "../libs/hooks/useLeavePage";
+
+import Profile from "../components/game/inGame/Profile";
 
 const Game: React.FC = () => {
-  const { session, connect, disconnect } = useSession();
-  const params = useParams();
-  const modal = useModal();
-
-  const openCreateGamePopup = useCallback(() => {
-    if (session) {
-      modal.open(<CreateGame />);
-    }
-  }, [session]);
+  const { players, leaveGame } = useGame();
+  const leavEvent = useLeavePage();
 
   useEffect(() => {
-    connect();
+    leavEvent.enable();
+
+    return () => {
+      leavEvent.disable();
+      leaveGame();
+    };
   }, []);
 
-  return <h1>gameId {params.gameId}</h1>;
+  return (
+    <div className="w-full h-full">
+      <div className="text-white" onClick={() => leaveGame()}>
+        나가기
+      </div>
+      <div className="w-full h-52 bg-primary-gray"></div>
+      <div className="flex flex-row flex-wrap">
+        {players &&
+          players.map((player, i) => <Profile key={i} player={player} />)}
+      </div>
+    </div>
+  );
 };
 
 export default Game;

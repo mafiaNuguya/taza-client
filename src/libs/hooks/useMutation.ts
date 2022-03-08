@@ -22,7 +22,7 @@ export default function useMutation<T = any>(
       headers: {
         "Content-Type": "application/json",
       },
-      ...(withCookie && { credentials: "same-origin" }),
+      ...(withCookie && { credentials: "include" }),
       body: JSON.stringify(data),
     })
       .then((response) => response.json().catch(() => {}))

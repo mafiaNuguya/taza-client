@@ -1,4 +1,4 @@
-import { Role, roleNames } from "../game/CreateGame/RoleCounter";
+import { Role, roleNames } from "../CreateGame/RoleCounter";
 
 interface RoleTagProps {
   name: Role;

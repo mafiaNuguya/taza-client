@@ -1,4 +1,4 @@
-import { useModal } from "../../Modal/Provider";
+import { useModal } from "../../../libs/Modal/Provider";
 import Close from "../../svgs/Close";
 
 const CloseButton: React.FC = () => {
