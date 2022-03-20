@@ -7,10 +7,10 @@ import rtcHelper from "./rtcHelper";
 class Session {
   socket: WebSocket;
   audioStream: MediaStream;
-  game: Game;
   id?: string;
   name?: string;
   currentChannel?: string;
+  game: Game;
 
   constructor(socket: WebSocket, audioStream: MediaStream) {
     this.socket = socket;
@@ -106,10 +106,8 @@ class Session {
   private handleConnnected(id: string, name: string, gameInfo: GameInfo) {
     this.id = id;
     this.name = name;
-    this.game.initGame(id, name, gameInfo);
-
-    const enterAction = actionCreator.enter(gameInfo.gameId);
-    this.emit(enterAction);
+    this.game.init(id, name, gameInfo);
+    this.emit(actionCreator.enter(gameInfo.gameId));
   }
 
   private async handleEntered(
@@ -117,12 +115,11 @@ class Session {
     enteredId: string,
     enteredName: string
   ) {
-    this.currentChannel = gameId;
-
     if (enteredId === this.id && enteredName === this.name) {
-      this.game.myPlayer.startSoundDetect(this.audioStream);
+      this.game.myPlayer?.startSoundDetect(this.audioStream);
       return;
     }
+    this.currentChannel = gameId;
     this.call(enteredId, enteredName);
   }
 
@@ -135,6 +132,7 @@ class Session {
     name: string,
     description: RTCSessionDescriptionInit
   ) {
+    console.log("called");
     this.answer(from, name, description);
   }
 

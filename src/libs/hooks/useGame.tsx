@@ -19,16 +19,17 @@ const useGame = () => {
     });
     return audioStream;
   };
-
   const leaveGame = () => {
     session?.socket.close();
     game?.close();
     navigate("/", { replace: true });
   };
-
-  useEffect(() => {
-    if (destroy) leaveGame();
-  }, [destroy]);
+  const handleUpdatePlayers = (players: Player[]) => setPlayers(players);
+  const handleDestroyGame = (destroyed: boolean) => {
+    if (!game?.gameInfo?.onGame) {
+      setDestroy(destroyed);
+    }
+  };
 
   useEffect(() => {
     getAudioStream()
@@ -44,23 +45,24 @@ const useGame = () => {
 
   useEffect(() => {
     if (session) {
-      const { game } = session;
-      setGame(game);
+      setGame(session.game);
     }
   }, [session]);
 
   useEffect(() => {
-    const updatePlayers = (players: Player[]) => setPlayers(players);
-    const destroyGame = (destroy: boolean) => setDestroy(destroy);
-
-    if (game) {
-      game.listen.on.playersUpdated(updatePlayers);
-      game.listen.on.destroyGame(destroyGame);
+    if (destroy) {
+      alert("방장이 나가 방이 파괴되었습니다.");
+      leaveGame();
     }
+  }, [destroy]);
+
+  useEffect(() => {
+    game?.onPlayersUpdated(handleUpdatePlayers);
+    game?.onGameDestroyed(handleDestroyGame);
 
     return () => {
-      game?.listen.off.playersUpdated(updatePlayers);
-      game?.listen.off.destroyGame(destroyGame);
+      game?.removePlayersUpdated(handleUpdatePlayers);
+      game?.removeGameDestroyed(handleDestroyGame);
     };
   }, [game]);
 

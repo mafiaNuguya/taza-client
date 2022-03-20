@@ -1,19 +1,21 @@
+import Game from ".";
 import { MessageType } from "./messages";
 import Player from "./Player";
 
 class Peer {
+  game: Game;
   player: Player;
   pc: RTCPeerConnection;
   dataChannel?: RTCDataChannel;
 
   constructor(
+    game: Game,
     id: string,
     name: string,
     isMaster: boolean,
-    isOffering: boolean,
-    private deleteThisPeer: () => any,
-    private destroyGame: () => any
+    isOffering: boolean
   ) {
+    this.game = game;
     this.player = new Player(id, name, isMaster);
     this.pc = this.createRTC(isOffering);
   }
@@ -30,11 +32,9 @@ class Peer {
   private createRTC(isOffering: boolean): RTCPeerConnection {
     const messageHandler = async (e: MessageEvent) => {
       try {
-        const parsed = JSON.parse(e.data);
-        this.handleReceiveMessage(parsed);
-      } catch (error) {
-        console.log(error);
-      }
+        const message = JSON.parse(e.data);
+        this.handleMessage(message);
+      } catch (error) {}
     };
     const pc = new RTCPeerConnection({
       iceServers: [
@@ -61,28 +61,24 @@ class Peer {
         this.dataChannel.addEventListener("message", messageHandler);
       });
     }
-
     return pc;
   }
 
-  private handleReceiveMessage(message: MessageType) {
+  private handleMessage(message: MessageType) {
     switch (message.type) {
-      case "disconnect":
-        this.handleDisconnect(message);
+      case "disconnect": {
+        this.handleDisconnect(message.from);
         break;
+      }
       default:
         break;
     }
   }
 
-  private handleDisconnect(message: MessageType) {
-    this.pc.close();
-    this.dataChannel?.close();
-    this.deleteThisPeer();
-
-    if (message.destroyGame) {
-      this.destroyGame();
-    }
+  private handleDisconnect(from: string) {
+    if (this.game.gameInfo?.masterId === from)
+      return this.game.gameDestroyedEvent.trigger(true);
+    this.game.deletePeer(from);
   }
 }
 

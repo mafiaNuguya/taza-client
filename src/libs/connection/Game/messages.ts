@@ -1,15 +1,12 @@
 type Disconnect = {
   type: "disconnect";
-  destroyGame: boolean;
+  from: string;
 };
 
 export type MessageType = Disconnect;
 
 const messageCreator = {
-  disconnect: (isMaster: boolean): Disconnect => ({
-    type: "disconnect",
-    destroyGame: isMaster,
-  }),
+  disconnect: (from: string): Disconnect => ({ type: "disconnect", from }),
 };
 
 export default messageCreator;

@@ -6,25 +6,17 @@ import Player from "./Player";
 type GameState = {};
 
 class Game {
-  distroy: boolean = false;
   gameInfo?: GameInfo;
   gameState: GameState = {};
-  myPlayer: Player;
-  private peers = new Map<string, Peer>();
+  myPlayer?: Player;
+  peers = new Map<string, Peer>();
+  playersUpdatedEvent = new CustomEvent<Player[]>();
+  gameDestroyedEvent = new CustomEvent<boolean>();
 
-  private destroyGameEvent = new CustomEvent<boolean>();
-  private gameStateUpdatedEvent = new CustomEvent<GameState>();
-  private playersUpdatedEvent = new CustomEvent<Player[]>();
-
-  constructor() {
-    this.myPlayer = new Player();
-  }
-
-  private getAllPlayers(): Player[] {
-    return [
-      this.myPlayer,
-      ...Array.from(this.peers.values()).map((peer) => peer.player),
-    ];
+  init(id: string, name: string, gameInfo: GameInfo) {
+    this.gameInfo = gameInfo;
+    this.myPlayer = new Player(id, name, this.gameInfo?.masterId === id);
+    this.updatePlayers();
   }
 
   private broadCast(message: MessageType) {
@@ -37,54 +29,45 @@ class Game {
     this.peers.get(to)?.dataChannel?.send(message);
   }
 
+  private updatePlayers() {
+    const players = [
+      this.myPlayer!,
+      ...Array.from(this.peers.values()).map((peer) => peer.player),
+    ];
+    this.playersUpdatedEvent.trigger(players);
+  }
+
   close() {
-    const disconnect = messageCreator.disconnect(
-      this.gameInfo?.masterId === this.myPlayer.id
-    );
-    this.broadCast(disconnect);
+    this.broadCast(messageCreator.disconnect(this.myPlayer?.id!));
   }
 
-  initGame(id: string, name: string, gameInfo: GameInfo) {
-    this.gameInfo = gameInfo;
-    this.myPlayer.init(id, name, gameInfo.masterId === id);
-    this.updatePlayers();
+  onPlayersUpdated(handler: { (players: Player[]): void }) {
+    this.playersUpdatedEvent.expose().on(handler);
   }
 
-  updatePlayers() {
-    this.playersUpdatedEvent.trigger(this.getAllPlayers());
+  removePlayersUpdated(handler: { (players: Player[]): void }) {
+    this.playersUpdatedEvent.expose().off(handler);
   }
 
-  destroyGame() {
-    this.destroyGameEvent.trigger(true);
+  onGameDestroyed(handler: { (destroyed: boolean): void }) {
+    this.gameDestroyedEvent.expose().on(handler);
   }
 
-  listen = {
-    on: {
-      playersUpdated: (handler: { (players: Player[]): void }) => {
-        this.playersUpdatedEvent.expose().on(handler);
-      },
-      destroyGame: (handler: { (destroy: boolean): void }) => {
-        this.destroyGameEvent.expose().on(handler);
-      },
-    },
-    off: {
-      playersUpdated: (handler: { (players: Player[]): void }) => {
-        this.playersUpdatedEvent.expose().off(handler);
-      },
-      destroyGame: (handler: { (destroy: boolean): void }) => {
-        this.destroyGameEvent.expose().off(handler);
-      },
-    },
-  };
+  removeGameDestroyed(handler: { (destroyed: boolean): void }) {
+    this.gameDestroyedEvent.expose().off(handler);
+  }
+
+  getPeer(id: string): Peer | undefined {
+    return this.peers.get(id);
+  }
 
   createPeer(id: string, name: string, isOffering: boolean): Peer {
     const peer = new Peer(
+      this,
       id,
       name,
       this.gameInfo?.masterId === id,
-      isOffering,
-      () => this.deletePeer(id),
-      () => this.destroyGame()
+      isOffering
     );
     this.peers.set(id, peer);
     this.updatePlayers();
@@ -94,10 +77,6 @@ class Game {
   deletePeer(id: string) {
     this.peers.delete(id);
     this.updatePlayers();
-  }
-
-  getPeer(id: string): Peer | undefined {
-    return this.peers.get(id);
   }
 }
 

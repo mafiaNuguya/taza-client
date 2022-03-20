@@ -8,10 +8,6 @@ class Player {
   private audioDetectedEvent = new CustomEvent<boolean>();
 
   constructor(id?: string, name?: string, isMaster?: boolean) {
-    this.init(id, name, isMaster);
-  }
-
-  init(id?: string, name?: string, isMaster?: boolean) {
     this.id = id;
     this.name = name;
     this.isMaster = isMaster;
