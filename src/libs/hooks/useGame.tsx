@@ -20,7 +20,7 @@ const useGame = () => {
     return audioStream;
   };
   const leaveGame = () => {
-    session?.socket.close();
+    session?.close();
     game?.close();
     navigate("/", { replace: true });
   };

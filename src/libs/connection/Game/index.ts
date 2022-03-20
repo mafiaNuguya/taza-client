@@ -37,7 +37,20 @@ class Game {
     this.playersUpdatedEvent.trigger(players);
   }
 
+  private deleteAudio(id: string) {
+    const $root = document.querySelector("#root");
+    const $audio = document.getElementById(id);
+    $audio && $root?.removeChild($audio);
+  }
+
+  private deleteAudioAll() {
+    const $root = document.querySelector("#root");
+    const $audios = document.querySelectorAll("audio");
+    $audios.forEach(($audio) => $root?.removeChild($audio));
+  }
+
   close() {
+    this.deleteAudioAll();
     this.broadCast(messageCreator.disconnect(this.myPlayer?.id!));
   }
 
@@ -76,6 +89,7 @@ class Game {
 
   deletePeer(id: string) {
     this.peers.delete(id);
+    this.deleteAudio(id);
     this.updatePlayers();
   }
 }

@@ -67,7 +67,7 @@ class Peer {
   private handleMessage(message: MessageType) {
     switch (message.type) {
       case "disconnect": {
-        this.handleDisconnect(message.from);
+        this.handleDisconnect();
         break;
       }
       default:
@@ -75,10 +75,11 @@ class Peer {
     }
   }
 
-  private handleDisconnect(from: string) {
-    if (this.game.gameInfo?.masterId === from)
+  private handleDisconnect() {
+    if (this.game.gameInfo?.masterId === this.player.id) {
       return this.game.gameDestroyedEvent.trigger(true);
-    this.game.deletePeer(from);
+    }
+    this.game.deletePeer(this.player.id!);
   }
 }
 

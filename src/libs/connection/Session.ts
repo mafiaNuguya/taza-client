@@ -68,6 +68,11 @@ class Session {
     }
   }
 
+  close() {
+    this.socket.close();
+    this.audioStream.getAudioTracks()[0].stop();
+  }
+
   handleMessage(action: ReceiveAction) {
     switch (action.type) {
       case "connected": {
