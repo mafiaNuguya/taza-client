@@ -21,11 +21,17 @@ type CandidateAction = {
   candidate: RTCIceCandidate | null;
 };
 
+type GameStartAction = {
+  type: "gameStart";
+  gameId: string;
+};
+
 export type SendAction =
   | EnterAction
   | CallAction
   | AnswerAction
-  | CandidateAction;
+  | CandidateAction
+  | GameStartAction;
 
 const actionCreator = {
   enter: (gameId: string): EnterAction => ({ type: "enter", gameId }),
@@ -49,6 +55,10 @@ const actionCreator = {
     type: "candidate",
     to,
     candidate,
+  }),
+  gameStart: (gameId: string): GameStartAction => ({
+    type: "gameStart",
+    gameId,
   }),
 };
 

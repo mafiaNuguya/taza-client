@@ -70,6 +70,10 @@ class Peer {
         this.handleDisconnect();
         break;
       }
+      case "startGame": {
+        this.handleStartGame();
+        break;
+      }
       default:
         break;
     }
@@ -80,6 +84,13 @@ class Peer {
       return this.game.gameDestroyedEvent.trigger(true);
     }
     this.game.deletePeer(this.player.id!);
+  }
+
+  private handleStartGame() {
+    if (this.game.gameInfo) {
+      this.game.gameInfo.onGame = true;
+      this.game.gameInfoUpdatedEvent.trigger({ ...this.game.gameInfo });
+    }
   }
 }
 

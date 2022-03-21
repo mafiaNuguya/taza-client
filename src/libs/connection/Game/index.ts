@@ -1,3 +1,4 @@
+import actionCreator from "../actions/send";
 import CustomEvent from "../CustomEvent";
 import messageCreator, { MessageType } from "./messages";
 import Peer from "./Peer";
@@ -6,12 +7,18 @@ import Player from "./Player";
 type GameState = {};
 
 class Game {
+  socket: WebSocket;
   gameInfo?: GameInfo;
   gameState: GameState = {};
   myPlayer?: Player;
   peers = new Map<string, Peer>();
   playersUpdatedEvent = new CustomEvent<Player[]>();
+  gameInfoUpdatedEvent = new CustomEvent<GameInfo>();
   gameDestroyedEvent = new CustomEvent<boolean>();
+
+  constructor(socket: WebSocket) {
+    this.socket = socket;
+  }
 
   init(id: string, name: string, gameInfo: GameInfo) {
     this.gameInfo = gameInfo;
@@ -70,6 +77,14 @@ class Game {
     this.gameDestroyedEvent.expose().off(handler);
   }
 
+  onGameInfoUpdated(handler: { (gameInfo: GameInfo): void }) {
+    this.gameInfoUpdatedEvent.expose().on(handler);
+  }
+
+  removeGameInfoUpdated(handler: { (gameInfo: GameInfo): void }) {
+    this.gameInfoUpdatedEvent.expose().off(handler);
+  }
+
   getPeer(id: string): Peer | undefined {
     return this.peers.get(id);
   }
@@ -91,6 +106,17 @@ class Game {
     this.peers.delete(id);
     this.deleteAudio(id);
     this.updatePlayers();
+  }
+
+  startGame() {
+    this.socket.send(
+      JSON.stringify(actionCreator.gameStart(this.gameInfo?.gameId!))
+    );
+    if (this.gameInfo) {
+      this.gameInfo.onGame = true;
+      this.gameInfoUpdatedEvent.trigger({ ...this.gameInfo });
+    }
+    this.broadCast(messageCreator.startGame());
   }
 }
 

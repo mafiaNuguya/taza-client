@@ -39,3 +39,5 @@ type GameInfo = {
   masterId: string;
   sessions: User[];
 };
+
+type GameState = {};

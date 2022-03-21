@@ -3,10 +3,15 @@ type Disconnect = {
   from: string;
 };
 
-export type MessageType = Disconnect;
+type StartGame = {
+  type: "startGame";
+};
+
+export type MessageType = Disconnect | StartGame;
 
 const messageCreator = {
   disconnect: (from: string): Disconnect => ({ type: "disconnect", from }),
+  startGame: (): StartGame => ({ type: "startGame" }),
 };
 
 export default messageCreator;

@@ -15,7 +15,7 @@ class Session {
   constructor(socket: WebSocket, audioStream: MediaStream) {
     this.socket = socket;
     this.audioStream = audioStream;
-    this.game = new Game();
+    this.game = new Game(socket);
   }
 
   private emit(action: SendAction) {
@@ -137,7 +137,6 @@ class Session {
     name: string,
     description: RTCSessionDescriptionInit
   ) {
-    console.log("called");
     this.answer(from, name, description);
   }
 

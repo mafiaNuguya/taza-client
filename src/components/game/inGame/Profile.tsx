@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import Player from "../../../libs/connection/Game/Player";
+import User from "../../svgs/User";
 
 interface ProfileProps {
   player: Player;
+  isMine: boolean;
 }
 
-const Profile: React.FC<ProfileProps> = ({ player }) => {
+const Profile: React.FC<ProfileProps> = ({ player, isMine }) => {
   const [audioDetected, setAudioDetected] = useState(false);
 
   useEffect(() => {
@@ -25,6 +27,7 @@ const Profile: React.FC<ProfileProps> = ({ player }) => {
           className="absolute z-10 top-1 left-1"
         />
       )}
+      {isMine && <User />}
       <div className="flex justify-center items-center w-full h-full bg-zinc-800 opacity-90">
         <div
           className={`flex justify-center items-center w-2/3 aspect-square bg-black rounded-full ring-2 ${

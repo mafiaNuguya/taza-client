@@ -9,9 +9,10 @@ const useGame = () => {
   const params = useParams();
   const navigate = useNavigate();
   const { session, connect } = useSession();
-  const [game, setGame] = useState<Game>();
   const [destroy, setDestroy] = useState<boolean>(false);
+  const [game, setGame] = useState<Game>();
   const [players, setPlayers] = useState<Player[]>();
+  const [gameInfo, setGameInfo] = useState<GameInfo>();
 
   const getAudioStream = async (): Promise<MediaStream> => {
     const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -30,6 +31,7 @@ const useGame = () => {
       setDestroy(destroyed);
     }
   };
+  const handleUpdateGameInfo = (gameInfo: GameInfo) => setGameInfo(gameInfo);
 
   useEffect(() => {
     getAudioStream()
@@ -57,16 +59,21 @@ const useGame = () => {
   }, [destroy]);
 
   useEffect(() => {
+    if (game) {
+      setGameInfo(game.gameInfo);
+    }
     game?.onPlayersUpdated(handleUpdatePlayers);
     game?.onGameDestroyed(handleDestroyGame);
+    game?.onGameInfoUpdated(handleUpdateGameInfo);
 
     return () => {
       game?.removePlayersUpdated(handleUpdatePlayers);
       game?.removeGameDestroyed(handleDestroyGame);
+      game?.removeGameInfoUpdated(handleUpdateGameInfo);
     };
   }, [game]);
 
-  return { players, leaveGame };
+  return { game, gameInfo, players, leaveGame };
 };
 
 export default useGame;

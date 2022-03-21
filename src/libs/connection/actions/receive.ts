@@ -37,10 +37,16 @@ type CandidatedAction = {
   candidate: RTCIceCandidateInit;
 };
 
+type GameStartedAction = {
+  type: "gameStarted";
+  onGame: true;
+};
+
 export type ReceiveAction =
   | ConnectedAction
   | EnteredAction
   | EnteredFailAction
   | CalledAction
   | AnsweredAction
-  | CandidatedAction;
+  | CandidatedAction
+  | GameStartedAction;
