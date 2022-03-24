@@ -1,16 +1,18 @@
-import CustomEvent from "../CustomEvent";
+import CustomEvent from '../CustomEvent';
 
 class Player {
-  id?: string;
-  name?: string;
-  isMaster?: boolean;
-  MIN_DECIBELS = -55;
+  id: string;
+  name: string;
+  color: string;
+  isMaster: boolean;
+  readonly MIN_DECIBELS = -55;
   private audioDetectedEvent = new CustomEvent<boolean>();
 
-  constructor(id?: string, name?: string, isMaster?: boolean) {
+  constructor(id: string, name: string, isMaster: boolean, color: string) {
     this.id = id;
     this.name = name;
     this.isMaster = isMaster;
+    this.color = color;
   }
 
   onAudioDetected(handler: { (detected: boolean): void }) {

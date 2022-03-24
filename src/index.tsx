@@ -11,6 +11,7 @@ import App from "./App";
 import Home from "./pages/Home";
 import Waiting from "./pages/Waiting";
 import Game from "./pages/Game";
+import GameProvider from "./libs/connection/Game/Provider";
 
 ReactDOM.render(
   <BrowserRouter>
@@ -20,7 +21,14 @@ ReactDOM.render(
           <Route path="/" element={<App />}>
             <Route index element={<Home />} />
             <Route path="/waiting" element={<Waiting />} />
-            <Route path="/game/:gameId" element={<Game />} />
+            <Route
+              path="/game/:gameId"
+              element={
+                <GameProvider>
+                  <Game />
+                </GameProvider>
+              }
+            />
           </Route>
         </Routes>
       </AlertProvider>

@@ -29,7 +29,6 @@ type CreateGameData = {
 };
 
 type GameInfo = {
-  onGame: boolean;
   gameId: string;
   roomName: string;
   isPrivate: boolean;
@@ -40,4 +39,6 @@ type GameInfo = {
   sessions: User[];
 };
 
-type GameState = {};
+type GameState = "inGame" | "waiting" | "destroy";
+
+type GamePhase = "init";

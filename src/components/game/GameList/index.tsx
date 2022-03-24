@@ -1,9 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
-import type { Role } from "../CreateGame/RoleCounter";
+import type { Role } from '../CreateGame/RoleCounter';
 
-import UserProfile from "../../user/UserProfile";
-import RoleTag from "./RoleTag";
+import UserProfile from '../../user/UserProfile';
+import RoleTag from './RoleTag';
 
 interface RoomProps {
   gameInfo: GameInfo;
@@ -22,22 +22,19 @@ const GameList: React.FC<RoomProps> = ({ gameInfo }) => {
       <div className="flex flex-col flex-1 justify-between">
         <div className="text-2xl">{roomName}</div>
         <div className="w-full flex flex-row flex-wrap flex-1 p-1">
-          {new Array(headCount).fill("").map((_, i) => {
+          {new Array(headCount).fill('').map((_, i) => {
             if (sessions[i]) {
               return <UserProfile key={i} name={sessions[i].name} />;
             }
             return (
-              <div
-                key={i}
-                className="w-10 h-10 rounded-full border border-white mr-2 my-2 p-1"
-              />
+              <div key={i} className="w-10 h-10 rounded-full border border-white mr-2 my-2 p-1" />
             );
           })}
         </div>
       </div>
       <div className="flex flex-col ml-3">
         <div className="border-b mb-5">{`시작인원 ${headCount}`}</div>
-        {Object.entries(roleInfo).map((role) => (
+        {Object.entries(roleInfo).map(role => (
           <RoleTag key={role[0]} name={role[0] as Role} count={1} />
         ))}
       </div>

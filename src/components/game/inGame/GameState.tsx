@@ -14,10 +14,10 @@ const GameState: React.FC<GameStateProps> = ({ game, players }) => {
     game?.gameInfo?.userCount === players?.length
   );
 
-  const handleClickStartGame = () => {
-    if (!canStart) return;
-    game?.startGame();
-  };
+  // const handleClickStartGame = () => {
+  //   if (!canStart) return;
+  //   game?.startGame();
+  // };
 
   useEffect(() => {
     setCanStart(game?.gameInfo?.userCount === players?.length);
@@ -25,7 +25,7 @@ const GameState: React.FC<GameStateProps> = ({ game, players }) => {
 
   return (
     <div className="flex justify-center items-center w-full h-52 bg-zinc-700">
-      {game?.gameInfo?.onGame ? (
+      {/* {game?.gameInfo?.onGame ? (
         <div>게임 시작했어요</div>
       ) : (
         <div>
@@ -43,7 +43,7 @@ const GameState: React.FC<GameStateProps> = ({ game, players }) => {
             <div>게임 시작 전입니다.</div>
           )}
         </div>
-      )}
+      )} */}
     </div>
   );
 };

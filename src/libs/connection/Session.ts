@@ -1,105 +1,95 @@
-import { ReceiveAction } from "./actions/receive";
-import actionCreator, { SendAction } from "./actions/send";
+import colorList from '../colorList';
+import { ReceiveAction } from './actions/receive';
+import actionCreator, { SendAction } from './actions/send';
+import CustomEvent from './CustomEvent';
 
-import Game from "./Game/index";
-import rtcHelper from "./rtcHelper";
+import Game from './Game/index';
 
 class Session {
   socket: WebSocket;
   audioStream: MediaStream;
+  gameId: string;
   id?: string;
   name?: string;
-  currentChannel?: string;
-  game: Game;
+  game?: Game;
+  gameUpdatedEvent = new CustomEvent<Game>();
 
-  constructor(socket: WebSocket, audioStream: MediaStream) {
+  constructor(socket: WebSocket, audioStream: MediaStream, gameId: string) {
     this.socket = socket;
     this.audioStream = audioStream;
-    this.game = new Game(socket);
+    this.gameId = gameId;
   }
 
-  private emit(action: SendAction) {
+  emit(action: SendAction) {
     this.socket.send(JSON.stringify(action));
   }
 
-  private async call(to: string, name: string) {
-    const peer = this.game.createPeer(to, name, true);
+  close() {
+    this.socket.close();
+  }
 
-    if (peer) {
-      const { pc } = peer;
-      pc.addEventListener("icecandidate", (e) =>
-        this.emit(actionCreator.candidate(to, e.candidate))
-      );
-      rtcHelper.addTrack(pc, this.audioStream);
-      const offer = await rtcHelper.createOffer(pc);
-      this.emit(actionCreator.call(to, offer));
-    }
+  onGameUpdated(handler: { (game: Game): void }) {
+    this.gameUpdatedEvent.expose().on(handler);
+  }
+
+  removeGameUpdated(handler: { (game: Game): void }) {
+    this.gameUpdatedEvent.expose().off(handler);
+  }
+
+  updateGame(game: Game) {
+    this.gameUpdatedEvent.trigger(game);
+  }
+
+  private async call(to: string, name: string, color: string) {
+    if (!this.game) return;
+    const { pc } = this.game.createPeer(to, name, true, color);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    this.emit(actionCreator.call(to, offer, this.game.myPlayer.color));
   }
 
   private async answer(
     to: string,
     name: string,
-    description: RTCSessionDescriptionInit
+    description: RTCSessionDescriptionInit,
+    color: string
   ) {
-    const peer = this.game.createPeer(to, name, false);
-
-    if (peer) {
-      const { pc } = peer;
-      pc.addEventListener("icecandidate", (e) =>
-        this.emit(actionCreator.candidate(to, e.candidate))
-      );
-      rtcHelper.addTrack(pc, this.audioStream);
-      const answer = await rtcHelper.createAnswer(pc, description);
-      this.emit(actionCreator.answer(to, answer));
-    }
-  }
-
-  async connectionDone(from: string, description: RTCSessionDescriptionInit) {
-    const peer = this.game.getPeer(from);
-
-    if (peer) {
-      try {
-        const { pc } = peer;
-        await rtcHelper.done(pc, description);
-      } catch (error) {
-        console.log(error);
-        console.log("candidate fail");
-      }
-    }
-  }
-
-  close() {
-    this.socket.close();
-    this.audioStream.getAudioTracks()[0].stop();
+    if (!this.game) return;
+    const { pc } = this.game.createPeer(to, name, false, color);
+    await pc.setRemoteDescription(description);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    this.emit(actionCreator.answer(to, answer));
   }
 
   handleMessage(action: ReceiveAction) {
     switch (action.type) {
-      case "connected": {
-        this.handleConnnected(
-          action.sessionId,
-          action.sessionName,
-          action.gameInfo
+      case 'connected': {
+        this.handleConnnected(action.sessionId, action.sessionName);
+        break;
+      }
+      case 'entered': {
+        this.handleEntered(
+          action.gameInfo,
+          action.enteredId,
+          action.enteredName,
+          action.memberIndex
         );
         break;
       }
-      case "entered": {
-        this.handleEntered(action.gameId, action.enteredId, action.enteredName);
-        break;
-      }
-      case "enteredFail": {
+      case 'enteredFail': {
         this.handleEnteredFail(action.gameId, action.reason);
         break;
       }
-      case "called": {
-        this.handleCalled(action.from, action.name, action.description);
+      case 'called': {
+        this.handleCalled(action.from, action.name, action.description, action.color);
         break;
       }
-      case "answered": {
+      case 'answered': {
         this.handleAnswered(action.from, action.description);
         break;
       }
-      case "candidated": {
+      case 'candidated': {
         this.handleCandidated(action.from, action.candidate);
         break;
       }
@@ -108,24 +98,30 @@ class Session {
     }
   }
 
-  private handleConnnected(id: string, name: string, gameInfo: GameInfo) {
+  private handleConnnected(id: string, name: string) {
     this.id = id;
     this.name = name;
-    this.game.init(id, name, gameInfo);
-    this.emit(actionCreator.enter(gameInfo.gameId));
+    this.emit(actionCreator.enter(this.gameId));
   }
 
   private async handleEntered(
-    gameId: string,
+    gameInfo: GameInfo,
     enteredId: string,
-    enteredName: string
+    enteredName: string,
+    memberIndex: number
   ) {
-    if (enteredId === this.id && enteredName === this.name) {
-      this.game.myPlayer?.startSoundDetect(this.audioStream);
-      return;
+    if (enteredId !== this.id) {
+      return this.call(enteredId, enteredName, colorList[memberIndex]);
     }
-    this.currentChannel = gameId;
-    this.call(enteredId, enteredName);
+    this.game = new Game(
+      this.socket,
+      this.audioStream,
+      gameInfo,
+      enteredId,
+      enteredName,
+      colorList[memberIndex]
+    );
+    this.updateGame(this.game);
   }
 
   private handleEnteredFail(gameId: string, reason: string) {
@@ -135,25 +131,27 @@ class Session {
   private handleCalled(
     from: string,
     name: string,
-    description: RTCSessionDescriptionInit
+    description: RTCSessionDescriptionInit,
+    color: string
   ) {
-    this.answer(from, name, description);
+    this.answer(from, name, description, color);
   }
 
-  private handleAnswered(from: string, description: RTCSessionDescriptionInit) {
-    this.connectionDone(from, description);
-  }
-
-  async handleCandidated(from: string, candidate: RTCIceCandidateInit) {
-    const peer = this.game.getPeer(from);
+  private async handleAnswered(from: string, description: RTCSessionDescriptionInit) {
+    const peer = this.game?.getPeer(from);
 
     if (peer) {
       const { pc } = peer;
-      try {
-        await pc.addIceCandidate(candidate);
-      } catch (error) {
-        console.log("fail to candidate");
-      }
+      await pc.setRemoteDescription(description);
+    }
+  }
+
+  async handleCandidated(from: string, candidate: RTCIceCandidateInit) {
+    const peer = this.game?.getPeer(from);
+
+    if (peer) {
+      const { pc } = peer;
+      await pc.addIceCandidate(candidate);
     }
   }
 }

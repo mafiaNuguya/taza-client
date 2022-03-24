@@ -1,14 +1,14 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import useUser from "../libs/hooks/useUser";
-import useGameList from "../libs/hooks/useGameList";
-import useMutation from "../libs/hooks/useMutation";
-import { useModal } from "../libs/Modal/Provider";
+import useUser from '../libs/hooks/useUser';
+import useGameList from '../libs/hooks/useGameList';
+import useMutation from '../libs/hooks/useMutation';
+import { useModal } from '../libs/Modal/Provider';
 
-import GameList from "../components/game/GameList";
-import Button from "../components/buttons/Default";
-import CreateGame from "../components/game/CreateGame";
+import GameList from '../components/game/GameList';
+import Button from '../components/buttons/Default';
+import CreateGame from '../components/game/CreateGame';
 
 interface MutationResult {
   ok: boolean;
@@ -20,8 +20,9 @@ const Waiting: React.FC = () => {
   const [gameList] = useGameList();
   const modal = useModal();
   const navigate = useNavigate();
-  const [createGame, { loading, data: createGameData }] =
-    useMutation<MutationResult>(`${process.env.REACT_APP_API_URL}/game/create`);
+  const [createGame, { loading, data: createGameData }] = useMutation<MutationResult>(
+    `${process.env.REACT_APP_API_URL}/game/create`
+  );
 
   const openCreateGamePopup = () => {
     if (user) {
@@ -30,14 +31,8 @@ const Waiting: React.FC = () => {
   };
 
   useEffect(() => {
-    if (user?.ingame) {
-      navigate(`/game/${user?.ingame}`);
-    }
-  }, [user?.ingame]);
-
-  useEffect(() => {
     if (!user) {
-      navigate("/", { replace: true });
+      navigate('/', { replace: true });
     }
   }, [user]);
 
@@ -55,14 +50,13 @@ const Waiting: React.FC = () => {
           <div className="mr-4">{`대기중인 게임: ${gameList?.length}`}</div>
         </div>
         <div className="flex flex-row">
-          <Button className={"mr-3"} text={"코드로 참여"} onClick={() => {}} />
-          <Button text={"방만들기"} onClick={openCreateGamePopup} />
+          <Button className={'mr-3'} text={'코드로 참여'} onClick={() => {}} />
+          <Button text={'방만들기'} onClick={openCreateGamePopup} />
         </div>
       </div>
       <div className="flex-1 overflow-scroll box-border">
         <div className="px-5 py-3">
-          {gameList &&
-            gameList.map((game, i) => <GameList key={i} gameInfo={game} />)}
+          {gameList && gameList.map((game, i) => <GameList key={i} gameInfo={game.gameInfo} />)}
         </div>
       </div>
     </div>

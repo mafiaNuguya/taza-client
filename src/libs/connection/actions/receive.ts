@@ -1,44 +1,45 @@
 type ConnectedAction = {
-  type: "connected";
-  gameInfo: GameInfo;
+  type: 'connected';
   sessionId: string;
   sessionName: string;
 };
 
 type EnteredAction = {
-  type: "entered";
-  gameId: string;
+  type: 'entered';
+  gameInfo: GameInfo;
   enteredId: string;
   enteredName: string;
+  memberIndex: number;
 };
 
 type EnteredFailAction = {
-  type: "enteredFail";
+  type: 'enteredFail';
   gameId: string;
   reason: string;
 };
 
 type CalledAction = {
-  type: "called";
+  type: 'called';
   from: string;
   name: string;
   description: RTCSessionDescriptionInit;
+  color: string;
 };
 
 type AnsweredAction = {
-  type: "answered";
+  type: 'answered';
   from: string;
   description: RTCSessionDescriptionInit;
 };
 
 type CandidatedAction = {
-  type: "candidated";
+  type: 'candidated';
   from: string;
   candidate: RTCIceCandidateInit;
 };
 
 type GameStartedAction = {
-  type: "gameStarted";
+  type: 'gameStarted';
   onGame: true;
 };
 

@@ -1,28 +1,29 @@
 type EnterAction = {
-  type: "enter";
+  type: 'enter';
   gameId: string;
 };
 
 type CallAction = {
-  type: "call";
+  type: 'call';
   to: string;
   description: RTCSessionDescriptionInit;
+  color: string;
 };
 
 type AnswerAction = {
-  type: "answer";
+  type: 'answer';
   to: string;
   description: RTCSessionDescriptionInit;
 };
 
 type CandidateAction = {
-  type: "candidate";
+  type: 'candidate';
   to: string;
   candidate: RTCIceCandidate | null;
 };
 
 type GameStartAction = {
-  type: "gameStart";
+  type: 'gameStart';
   gameId: string;
 };
 
@@ -34,30 +35,25 @@ export type SendAction =
   | GameStartAction;
 
 const actionCreator = {
-  enter: (gameId: string): EnterAction => ({ type: "enter", gameId }),
-  call: (to: string, description: RTCSessionDescriptionInit): CallAction => ({
-    type: "call",
+  enter: (gameId: string): EnterAction => ({ type: 'enter', gameId }),
+  call: (to: string, description: RTCSessionDescriptionInit, color: string): CallAction => ({
+    type: 'call',
+    to,
+    description,
+    color,
+  }),
+  answer: (to: string, description: RTCSessionDescriptionInit): AnswerAction => ({
+    type: 'answer',
     to,
     description,
   }),
-  answer: (
-    to: string,
-    description: RTCSessionDescriptionInit
-  ): AnswerAction => ({
-    type: "answer",
-    to,
-    description,
-  }),
-  candidate: (
-    to: string,
-    candidate: RTCIceCandidate | null
-  ): CandidateAction => ({
-    type: "candidate",
+  candidate: (to: string, candidate: RTCIceCandidate | null): CandidateAction => ({
+    type: 'candidate',
     to,
     candidate,
   }),
   gameStart: (gameId: string): GameStartAction => ({
-    type: "gameStart",
+    type: 'gameStart',
     gameId,
   }),
 };

@@ -15,7 +15,7 @@ const useSession = () => {
     ws.current = new WebSocket(
       `${process.env.REACT_APP_WEBSOCKET_URL}/${gameId}`
     );
-    const session = new Session(ws.current, stream);
+    const session = new Session(ws.current, stream, gameId);
     setSession(session);
 
     ws.current.addEventListener("open", () => {});

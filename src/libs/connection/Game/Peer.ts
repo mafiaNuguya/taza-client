@@ -1,97 +1,82 @@
-import Game from ".";
-import { MessageType } from "./messages";
-import Player from "./Player";
+import actionCreator, { SendAction } from '../actions/send';
+import { MessageType } from './messages';
+import Player from './Player';
 
 class Peer {
-  game: Game;
   player: Player;
   pc: RTCPeerConnection;
   dataChannel?: RTCDataChannel;
 
   constructor(
-    game: Game,
-    id: string,
-    name: string,
-    isMaster: boolean,
-    isOffering: boolean
+    public socket: WebSocket,
+    isOffering: boolean,
+    player: Player,
+    myAudioStream: MediaStream
   ) {
-    this.game = game;
-    this.player = new Player(id, name, isMaster);
-    this.pc = this.createRTC(isOffering);
+    this.player = player;
+    this.pc = this.createRTC(isOffering, myAudioStream);
   }
 
-  private createAudio(): HTMLAudioElement {
-    const $audio = document.createElement("audio");
-    const $root = document.querySelector("#root");
-    $audio.id = this.player.id!;
+  createAudio(id: string): HTMLAudioElement {
+    const $audio = document.createElement('audio');
+    const $root = document.querySelector('#root');
+    $audio.id = id!;
     $audio.autoplay = true;
     $root?.appendChild($audio);
     return $audio;
   }
 
-  private createRTC(isOffering: boolean): RTCPeerConnection {
+  private createRTC(isOffering: boolean, myAudioStream: MediaStream): RTCPeerConnection {
     const messageHandler = async (e: MessageEvent) => {
       try {
         const message = JSON.parse(e.data);
-        this.handleMessage(message);
-      } catch (error) {}
+        // this.handleMessage(message);
+      } catch (error) {
+        console.log(error);
+      }
     };
     const pc = new RTCPeerConnection({
       iceServers: [
         {
-          urls: [
-            "stun:stun.l.google.com:19302",
-            "stun:stun1.l.google.com:19302",
-          ],
+          urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'],
         },
       ],
     });
-    pc.addEventListener("track", (e) => {
-      const $audio = this.createAudio();
+    pc.addEventListener('icecandidate', e =>
+      this.socket.send(JSON.stringify(actionCreator.candidate(this.player.id, e.candidate)))
+    );
+    pc.addEventListener('track', e => {
+      const $audio = this.createAudio(this.player.id);
       $audio.srcObject = e.streams[0];
       this.player.startSoundDetect(e.streams[0]);
     });
 
     if (isOffering) {
-      this.dataChannel = pc.createDataChannel("data");
-      this.dataChannel.addEventListener("message", messageHandler);
+      this.dataChannel = pc.createDataChannel('data');
+      this.dataChannel.addEventListener('message', messageHandler);
     } else {
-      pc.addEventListener("datachannel", (e) => {
+      pc.addEventListener('datachannel', e => {
         this.dataChannel = e.channel;
-        this.dataChannel.addEventListener("message", messageHandler);
+        this.dataChannel.addEventListener('message', messageHandler);
       });
     }
+    myAudioStream.getTracks().forEach(track => pc.addTrack(track, myAudioStream));
     return pc;
   }
 
-  private handleMessage(message: MessageType) {
-    switch (message.type) {
-      case "disconnect": {
-        this.handleDisconnect();
-        break;
-      }
-      case "startGame": {
-        this.handleStartGame();
-        break;
-      }
-      default:
-        break;
-    }
-  }
+  // private handleDisconnect() {
+  //   if (this.game.gameInfo?.masterId === this.player.id) {
+  //     return this.game.gameDestroyedEvent.trigger(true);
+  //   }
+  //   this.game.deletePeer(this.player.id!);
+  // }
 
-  private handleDisconnect() {
-    if (this.game.gameInfo?.masterId === this.player.id) {
-      return this.game.gameDestroyedEvent.trigger(true);
-    }
-    this.game.deletePeer(this.player.id!);
-  }
-
-  private handleStartGame() {
-    if (this.game.gameInfo) {
-      this.game.gameInfo.onGame = true;
-      this.game.gameInfoUpdatedEvent.trigger({ ...this.game.gameInfo });
-    }
-  }
+  // private handleStartGame() {
+  //   if (this.game.gameInfo) {
+  //     this.game.gameInfo.onGame = true;
+  //     this.game.gameInfoUpdatedEvent.trigger({ ...this.game.gameInfo });
+  //   }
+  // }
 }
 
 export default Peer;
