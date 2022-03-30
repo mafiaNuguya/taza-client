@@ -1,27 +1,43 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Game from '.';
-import useSession from '../../hooks/useSession';
+
+import useUser from '../../hooks/useUser';
+import useGameEnter from '../../hooks/useGameEnter';
+import useGameElement from '../../hooks/useGameElement';
 import Player from './Player';
+
+export const gameInfoDefault: GameInfo = {
+  gameId: '',
+  roomName: '',
+  isPrivate: false,
+  userCount: 0,
+  gameType: '4set',
+  roleInfo: {
+    mafia: 0,
+    civil: 0,
+    doctor: 0,
+    police: 0,
+  },
+  masterId: '',
+  sessions: [],
+};
 
 type Games = {
   gameState: GameState;
-  gameInfo: GameInfo | null;
+  gameInfo: GameInfo;
   gamePhase: GamePhase;
   players: Player[];
-  // direct: () => any;
-  // broadcast: () => any;
-  // leaveGame: () => any;
+  leaveGame: () => any;
+  // startGame: () => any;
 };
 
 const contextDefault: Games = {
   gameState: 'waiting',
-  gameInfo: null,
+  gameInfo: gameInfoDefault,
   gamePhase: 'init',
   players: [],
-  // direct: () => {},
-  // broadcast: () => {},
-  // leaveGame: () => {},
+  leaveGame: () => {},
+  // startGame: () => {},
 };
 const GameContext = createContext<Games>(contextDefault);
 
@@ -31,61 +47,61 @@ const getAudioStream = async (): Promise<MediaStream> =>
 const useProvideGame = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const { session, connect } = useSession();
-  const [game, setGame] = useState<Game | null>(null);
-  const [gameState, setGameState] = useState<GameState>('waiting');
-  const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
-  const [gamePhase, setGamePhase] = useState<GamePhase>('init');
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [user] = useUser();
+  const micPermission = useRef(false);
+  const { game, enter } = useGameEnter();
+  const { gameState, gameInfo, gamePhase, players } = useGameElement(game);
 
-  const handleUpdateGame = (game: Game) => {
-    setGame(game);
-    setPlayers([game.myPlayer]);
+  const handleBack = () => {
+    if (window.confirm('뒤로가겠습니까?')) return leaveGame();
+    window.history.pushState('', '', '?moved');
   };
-  const handleUpdateGameState = (gameState: GameState) => setGameState(gameState);
-  const handleUpdateGameInfo = (gameInfo: GameInfo) => setGameInfo(gameInfo);
-  const handleUpdateGamePhase = (gamePhase: GamePhase) => setGamePhase(gamePhase);
-  const handleUpdatePlayers = (players: Player[]) => setPlayers(players);
+  const handleRefresh = (e: BeforeUnloadEvent) => {
+    e.preventDefault();
+    e.returnValue = '';
+  };
+  const leaveGame = () => {
+    game?.leaveGame();
+    navigate('/', { replace: true });
+  };
 
   useEffect(() => {
-    getAudioStream()
-      .then(audioStream => {
-        const gameId = params.gameId!;
-        connect(gameId, audioStream);
-      })
-      .catch(() => {
-        alert('마이크 권한을 활성화 하고 다시 게임에 참여해 주세요');
-        navigate('/', { replace: true });
-      });
-  }, []);
+    if (user && !micPermission.current) {
+      getAudioStream()
+        .then(audioStream => {
+          micPermission.current = true;
+          const gameId = params.gameId!;
+          enter(audioStream, gameId, user.id, user.name);
+        })
+        .catch(() => {
+          micPermission.current = false;
+          alert('마이크 권한을 활성화 하고 다시 게임에 참여해 주세요');
+          navigate('/', { replace: true });
+        });
+    }
+  }, [user]);
 
   useEffect(() => {
-    session?.onGameUpdated(handleUpdateGame);
-    return () => session?.removeGameUpdated(handleUpdateGame);
-  }, [session]);
+    window.addEventListener('beforeunload', handleRefresh);
+    window.addEventListener('popstate', handleBack);
 
-  useEffect(() => {
-    game?.addEventListener('gameInfo', handleUpdateGameInfo);
-    game?.addEventListener('gameState', handleUpdateGameState);
-    game?.addEventListener('gamePhase', handleUpdateGamePhase);
-    game?.addEventListener('players', handleUpdatePlayers);
+    if (window.location.search !== '?moved') {
+      window.history.pushState(null, '', '?moved');
+    }
 
     return () => {
-      game?.removeEventListenr('gameInfo', handleUpdateGameInfo);
-      game?.removeEventListenr('gameState', handleUpdateGameState);
-      game?.removeEventListenr('gamePhase', handleUpdateGamePhase);
-      game?.removeEventListenr('players', handleUpdatePlayers);
+      window.removeEventListener('beforeunload', handleRefresh);
+      window.removeEventListener('popstate', handleBack);
     };
-  }, [game]);
+  }, []);
 
   return {
     gameState,
     gameInfo,
     gamePhase,
     players,
-    // direct,
-    // broadcast,
-    // leaveGame,
+    leaveGame,
+    // startGame,
   };
 };
 

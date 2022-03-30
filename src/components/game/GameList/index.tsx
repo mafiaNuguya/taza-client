@@ -1,7 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 
-import type { Role } from '../CreateGame/RoleCounter';
-
 import UserProfile from '../../user/UserProfile';
 import RoleTag from './RoleTag';
 

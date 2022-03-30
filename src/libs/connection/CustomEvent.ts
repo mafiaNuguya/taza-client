@@ -14,10 +14,10 @@ class CustomEvent<T> implements CustomEventListener<T> {
     this.handlers.push(handler);
   }
   off(handler: Handler<T>): void {
-    this.handlers = this.handlers.filter((h) => h !== handler);
+    this.handlers = this.handlers.filter(h => h !== handler);
   }
   trigger(data: T) {
-    this.handlers.forEach((h) => h(data));
+    this.handlers.forEach(h => h(data));
   }
   expose(): CustomEventListener<T> {
     return this;

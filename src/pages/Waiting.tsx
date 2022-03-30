@@ -31,8 +31,10 @@ const Waiting: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!user) {
-      navigate('/', { replace: true });
+    if (user?.ingame) {
+      // if (confirm('전에 하던 게임이 있습니까 재입장하시겠습니까?')) {
+      // } else {
+      // }
     }
   }, [user]);
 

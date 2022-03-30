@@ -1,15 +1,14 @@
-type ConnectedAction = {
-  type: 'connected';
-  sessionId: string;
-  sessionName: string;
-};
-
 type EnteredAction = {
   type: 'entered';
   gameInfo: GameInfo;
   enteredId: string;
   enteredName: string;
-  memberIndex: number;
+  color: string;
+};
+
+type LeavedAction = {
+  type: 'leaved';
+  leavedId: string;
 };
 
 type EnteredFailAction = {
@@ -44,8 +43,8 @@ type GameStartedAction = {
 };
 
 export type ReceiveAction =
-  | ConnectedAction
   | EnteredAction
+  | LeavedAction
   | EnteredFailAction
   | CalledAction
   | AnsweredAction

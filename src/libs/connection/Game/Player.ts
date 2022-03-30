@@ -3,9 +3,9 @@ import CustomEvent from '../CustomEvent';
 class Player {
   id: string;
   name: string;
-  color: string;
   isMaster: boolean;
-  readonly MIN_DECIBELS = -55;
+  color: string;
+  readonly MIN_DECIBELS = -45;
   private audioDetectedEvent = new CustomEvent<boolean>();
 
   constructor(id: string, name: string, isMaster: boolean, color: string) {

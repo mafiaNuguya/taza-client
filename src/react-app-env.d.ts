@@ -14,7 +14,9 @@ type User = {
   ingame?: string;
 };
 
-type GameType = "4set" | "6set" | "custom";
+type Role = 'mafia' | 'police' | 'doctor' | 'civil';
+
+type GameType = '4set' | '6set' | 'custom';
 
 type RoleInfo = {
   [key in Role]: number;
@@ -39,6 +41,6 @@ type GameInfo = {
   sessions: User[];
 };
 
-type GameState = "inGame" | "waiting" | "destroy";
+type GameState = 'inGame' | 'waiting';
 
-type GamePhase = "init";
+type GamePhase = 'init';

@@ -1,4 +1,3 @@
-import colorList from '../colorList';
 import { ReceiveAction } from './actions/receive';
 import actionCreator, { SendAction } from './actions/send';
 import CustomEvent from './CustomEvent';
@@ -9,15 +8,23 @@ class Session {
   socket: WebSocket;
   audioStream: MediaStream;
   gameId: string;
-  id?: string;
-  name?: string;
+  id: string;
+  name: string;
   game?: Game;
   gameUpdatedEvent = new CustomEvent<Game>();
 
-  constructor(socket: WebSocket, audioStream: MediaStream, gameId: string) {
+  constructor(
+    socket: WebSocket,
+    audioStream: MediaStream,
+    gameId: string,
+    id: string,
+    name: string
+  ) {
     this.socket = socket;
     this.audioStream = audioStream;
     this.gameId = gameId;
+    this.id = id;
+    this.name = name;
   }
 
   emit(action: SendAction) {
@@ -64,17 +71,16 @@ class Session {
 
   handleMessage(action: ReceiveAction) {
     switch (action.type) {
-      case 'connected': {
-        this.handleConnnected(action.sessionId, action.sessionName);
+      case 'entered': {
+        this.handleEntered(action.gameInfo, action.enteredId, action.enteredName, action.color);
         break;
       }
-      case 'entered': {
-        this.handleEntered(
-          action.gameInfo,
-          action.enteredId,
-          action.enteredName,
-          action.memberIndex
-        );
+      case 'leaved': {
+        if (this.game?.gameInfo.masterId === action.leavedId) {
+          alert('방장이 나가 게임이 파괴되었습니다.');
+          return this.game?.leaveGame();
+        }
+        this.game?.deletePeer(action.leavedId);
         break;
       }
       case 'enteredFail': {
@@ -98,29 +104,16 @@ class Session {
     }
   }
 
-  private handleConnnected(id: string, name: string) {
-    this.id = id;
-    this.name = name;
-    this.emit(actionCreator.enter(this.gameId));
-  }
-
   private async handleEntered(
     gameInfo: GameInfo,
     enteredId: string,
     enteredName: string,
-    memberIndex: number
+    color: string
   ) {
     if (enteredId !== this.id) {
-      return this.call(enteredId, enteredName, colorList[memberIndex]);
+      return this.call(enteredId, enteredName, color);
     }
-    this.game = new Game(
-      this.socket,
-      this.audioStream,
-      gameInfo,
-      enteredId,
-      enteredName,
-      colorList[memberIndex]
-    );
+    this.game = new Game(this.socket, this.audioStream, gameInfo, enteredId, enteredName, color);
     this.updateGame(this.game);
   }
 

@@ -1,6 +1,5 @@
-import { SendAction } from '../actions/send';
+import { MessageType } from './messages';
 import CustomEvent from '../CustomEvent';
-import messageCreator, { MessageType } from './messages';
 import Peer from './Peer';
 import Player from './Player';
 
@@ -12,26 +11,27 @@ interface GameEventMap {
 }
 
 class Game {
+  socket: WebSocket;
+  audioStream: MediaStream;
   gameState: GameState = 'waiting';
-  gameInfo: GameInfo;
   gamePhase: GamePhase = 'init';
   myPlayer: Player;
-  audioStream: MediaStream;
+  gameInfo: GameInfo;
   peers = new Map<string, Peer>();
-  players = new Map<string, Player>();
   gameEventMap = new Map<keyof GameEventMap, CustomEvent<any>>();
 
   constructor(
-    public socket: WebSocket,
+    socket: WebSocket,
     audioStream: MediaStream,
     gameInfo: GameInfo,
     id: string,
     name: string,
-    myColor: string
+    color: string
   ) {
-    this.gameInfo = gameInfo;
+    this.socket = socket;
     this.audioStream = audioStream;
-    this.myPlayer = new Player(id, name, gameInfo.masterId === id, myColor);
+    this.gameInfo = gameInfo;
+    this.myPlayer = new Player(id, name, this.gameInfo.masterId === id, color);
     this.myPlayer.startSoundDetect(audioStream);
   }
 
@@ -52,17 +52,15 @@ class Game {
     type: T,
     listener: { (data: GameEventMap[T]): void }
   ) {
-    const event = this.gameEventMap.get(type);
-
-    if (event) {
-      event?.expose().off(listener);
-    }
+    this.gameEventMap.get(type)?.expose().off(listener);
   }
 
   update(type: keyof GameEventMap) {
     switch (type) {
       case 'players': {
-        this.gameEventMap.get('players')?.trigger(this.getPlayers());
+        this.gameEventMap
+          .get('players')
+          ?.trigger([this.myPlayer, ...Array.from(this.peers.values()).map(peer => peer.player)]);
         break;
       }
       case 'gameInfo': {
@@ -72,6 +70,7 @@ class Game {
         break;
       }
       case 'gameState': {
+        this.gameEventMap.get('gameState')?.trigger(this.gameState);
         break;
       }
       default:
@@ -79,62 +78,58 @@ class Game {
     }
   }
 
-  getPlayers(): Player[] {
-    return [this.myPlayer, ...Array.from(this.players.values())];
-  }
-
-  private broadCast(message: MessageType) {
-    this.peers.forEach(peer => peer.dataChannel?.send(JSON.stringify(message)));
-  }
-
-  private direct(to: string, message: any) {
-    this.peers.get(to)?.dataChannel?.send(message);
-  }
-
-  createAudio(id: string): HTMLAudioElement {
-    const $audio = document.createElement('audio');
-    const $root = document.querySelector('#root');
-    $audio.id = id!;
-    $audio.autoplay = true;
-    $root?.appendChild($audio);
-    return $audio;
-  }
-
-  deleteAudio(id: string) {
-    const $root = document.querySelector('#root');
-    const $audio = document.getElementById(id);
-    $audio && $root?.removeChild($audio);
-  }
-
-  deleteAudioAll() {
+  private deleteAudioAll() {
     const $root = document.querySelector('#root');
     const $audios = document.querySelectorAll('audio');
     $audios.forEach($audio => $root?.removeChild($audio));
   }
 
-  close() {
+  leaveGame() {
     this.audioStream.getAudioTracks()[0].stop();
     this.deleteAudioAll();
-    this.broadCast(messageCreator.disconnect(this.myPlayer?.id!));
+    this.socket.close();
+  }
+
+  broadCast(message: MessageType) {
+    this.peers.forEach(peer => peer.dataChannel?.send(JSON.stringify(message)));
+  }
+
+  direct(to: string, message: any) {
+    this.peers.get(to)?.dataChannel?.send(JSON.stringify(message));
   }
 
   getPeer(id: string): Peer | undefined {
     return this.peers.get(id);
   }
 
-  private createPlayer(id: string, name: string, color: string): Player {
-    const player = new Player(id, name, this.gameInfo.masterId === id, color);
-    this.players.set(id, player);
-    this.update('players');
-    return player;
-  }
-
   createPeer(id: string, name: string, isOffering: boolean, color: string): Peer {
-    const player = this.createPlayer(id, name, color);
-    const peer = new Peer(this.socket, isOffering, player, this.audioStream);
+    const player = new Player(id, name, this.gameInfo.masterId === id, color);
+    const peer = new Peer(this, isOffering, player);
     this.peers.set(id, peer);
+    this.update('players');
     return peer;
   }
+
+  deletePeer(id: string) {
+    this.peers.get(id)?.leave();
+    this.update('players');
+  }
+
+  handleMessage(message: MessageType) {
+    switch (message.type) {
+      case 'startGame': {
+        // this.handleStartGame();
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  // private handleStartGame() {
+  //   this.gameState = 'inGame';
+  //   this.update('gameState');
+  // }
 }
 
 export default Game;
